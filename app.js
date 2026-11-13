@@ -1,43 +1,61 @@
 const STORAGE_KEY = 'wavly_playlists_v1';
 
-// Default Curated Playlist
+// Default Curated Playlist na may kasamang OPM Hits at Pinoy Hip-Hop/Rap
 const defaultPlaylist = [
     {
         id: "1",
-        title: "Blinding Lights",
-        artist: "The Weeknd",
-        mood: "Energy",
+        title: "Alam Mo Ba Girl",
+        artist: "Hev Abi",
+        mood: "Chill",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/74/d3/18/74d318e8-d65e-2b1b-967b-1361c47144e5/19UMGIM05610.rgb.jpg/600x600bb.jpg"
+        cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80"
     },
     {
         id: "2",
-        title: "Levitating",
-        artist: "Dua Lipa",
-        mood: "Chill",
+        title: "Gusto",
+        artist: "Zack Tabudlo & Al James",
+        mood: "Energy",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/55/e2/e8/55e2e8e6-1215-28b9-497b-3b60cd5e04b7/20UMGIM81561.rgb.jpg/600x600bb.jpg"
+        cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&auto=format&fit=crop&q=80"
     },
     {
         id: "3",
-        title: "Stay",
-        artist: "The Kid LAROI & Justin Bieber",
+        title: "Ilang Taon Na Ba",
+        artist: "Flow G",
         mood: "Energy",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/95/fb/6a/95fb6a6d-cb53-06a1-94ef-65d1b72e1268/21UMGIM56449.rgb.jpg/600x600bb.jpg"
+        cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80"
     },
     {
         id: "4",
-        title: "Yellow",
-        artist: "Coldplay",
-        mood: "Focus",
+        title: "Dilaw",
+        artist: "Maki",
+        mood: "Chill",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/a4/6a/d0/a46ad07a-289b-8710-53e3-85f2658f8b8a/mza_15510619932174246995.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a6/5c/24/a65c24e6-8c43-91ee-016c-e2f7bb7c2bc3/06UMGIM13996.rgb.jpg/600x600bb.jpg"
+        cover: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80"
+    },
+    {
+        id: "5",
+        title: "Bawat Piyesa",
+        artist: "Munimuni",
+        mood: "Focus",
+        durationText: "0:30",
+        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
+        cover: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80"
     }
+];
+
+// Best OPM & Hip-Hop Artists featured list
+const bestArtists = [
+    { name: "Hev Abi", genre: "Pinoy R&B / Rap", img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60" },
+    { name: "Flow G", genre: "Hip-Hop / Rap", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60" },
+    { name: "Zack Tabudlo", genre: "OPM Pop / Soul", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=60" },
+    { name: "Al James", genre: "Smooth Rap / OPM", img: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=60" },
+    { name: "Maki", genre: "Modern OPM", img: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=60" }
 ];
 
 function getStoredPlaylists() {
@@ -140,7 +158,7 @@ async function updateMediaSession(song) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: song.title,
             artist: song.artist,
-            album: 'Wavly',
+            album: 'Wavly OPM',
             artwork: [
                 { src: song.cover, sizes: '512x512', type: 'image/jpeg' },
                 { src: song.cover, sizes: '256x256', type: 'image/jpeg' }
@@ -163,18 +181,18 @@ function updatePositionState() {
     }
 }
 
-// Render Home o Library / Playlists
+// Render Songs (Kasama na ang Best Artists section sa Home)
 function renderSongs() {
     songListEl.innerHTML = '';
 
     if (activeView === "home") {
-        document.getElementById('feedEyebrow').textContent = "CURATED HITS";
-        document.getElementById('feedTitle').textContent = "Quick picks";
+        document.getElementById('feedEyebrow').textContent = "PINOY OPM & HIP-HOP";
+        document.getElementById('feedTitle').textContent = "Trending OPM & Rap";
 
         playlist = [...defaultPlaylist];
 
         playlist.forEach((song, idx) => {
-            const isCurrent = (currentIndex === idx);
+            const isCurrent = (playlist[currentIndex]?.id === song.id);
             const downloaded = isSongDownloaded(song.id);
 
             const item = document.createElement('div');
@@ -183,11 +201,13 @@ function renderSongs() {
                 <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
                 <div class="song-info">
                     <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
-                    <p>${song.artist} • ${song.mood || 'Stream'}</p>
+                    <p>${song.artist} • ${song.mood || 'OPM'}</p>
                 </div>
                 <span class="song-duration-tag">${song.durationText || '0:30'}</span>
             `;
+            
             item.addEventListener('click', () => {
+                playlist = [...defaultPlaylist];
                 loadSong(idx);
                 playSong();
                 openSheet();
@@ -195,19 +215,43 @@ function renderSongs() {
             songListEl.appendChild(item);
         });
 
+        // Render Best Artists Section sa Heavy Rotation carousel
+        document.querySelector('.feed-section:nth-of-type(2) .eyebrow').textContent = "TOP CREATORS";
+        document.querySelector('.feed-section:nth-of-type(2) h3').textContent = "Best OPM Artists";
+
         carouselListEl.innerHTML = '';
-        playlist.forEach((song, idx) => {
+        bestArtists.forEach((artist) => {
             const card = document.createElement('div');
             card.className = 'carousel-card';
             card.innerHTML = `
-                <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
-                <h4>${song.title}</h4>
-                <p>${song.artist}</p>
+                <img src="${artist.img}" alt="${artist.name}" style="border-radius: 50%;" referrerpolicy="no-referrer" crossorigin="anonymous">
+                <h4 style="text-align: center;">${artist.name}</h4>
+                <p style="text-align: center; font-size: 11px;">${artist.genre}</p>
             `;
-            card.addEventListener('click', () => {
-                loadSong(idx);
-                playSong();
-                openSheet();
+            card.addEventListener('click', async () => {
+                showToast(`Nagse-search ng kanta mula kay ${artist.name}...`);
+                try {
+                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=song&limit=10`);
+                    const data = await res.json();
+                    if (data.results && data.results.length > 0) {
+                        playlist = data.results.map(item => ({
+                            id: String(item.trackId),
+                            title: item.trackName,
+                            artist: item.artistName,
+                            mood: item.primaryGenreName || 'OPM',
+                            durationText: '0:30',
+                            src: item.previewUrl,
+                            cover: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg') : artist.img
+                        }));
+                        loadSong(0);
+                        playSong();
+                        openSheet();
+                    } else {
+                        showToast(`Walang nakitang kanta para kay ${artist.name}`);
+                    }
+                } catch {
+                    showToast("Nagka-error sa pagkuha ng artist tracks.");
+                }
             });
             carouselListEl.appendChild(card);
         });
@@ -353,7 +397,7 @@ function loadSong(index) {
     fullTitle.textContent = song.title;
     miniArtist.textContent = song.artist;
     fullArtist.textContent = song.artist;
-    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : (song.mood || 'Live Stream');
+    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : (song.mood || 'OPM Stream');
 
     progressBar.value = 0;
     miniProgressFill.style.width = '0%';
@@ -363,7 +407,6 @@ function loadSong(index) {
     updateLikeUI();
     updateDownloadButtonUI(song);
     updateMediaSession(song);
-    renderSongs();
 }
 
 async function playSong() {
@@ -407,6 +450,7 @@ miniPlayBtn.addEventListener('click', (e) => {
 playPauseBtn.addEventListener('click', togglePlayPause);
 
 document.getElementById('heroPlayBtn').addEventListener('click', () => {
+    playlist = [...defaultPlaylist];
     loadSong(0);
     playSong();
     openSheet();
@@ -566,7 +610,7 @@ closeSearchBtn.addEventListener('click', () => searchOverlay.classList.remove('a
 clearSearchBtn.addEventListener('click', () => {
     searchInput.value = '';
     clearSearchBtn.style.display = 'none';
-    searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artista...</p>';
+    searchResults.innerHTML = '<p class="search-hint">Mag-type ng OPM o kanta...</p>';
     searchInput.focus();
 });
 
@@ -577,7 +621,7 @@ searchInput.addEventListener('input', (e) => {
 
     clearTimeout(searchTimer);
     if (!query) {
-        searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artista...</p>';
+        searchResults.innerHTML = '<p class="search-hint">Mag-type ng OPM o kanta...</p>';
         return;
     }
 
@@ -601,7 +645,7 @@ searchInput.addEventListener('input', (e) => {
                     id: String(item.trackId),
                     title: item.trackName,
                     artist: item.artistName,
-                    mood: item.primaryGenreName || 'Preview',
+                    mood: item.primaryGenreName || 'OPM',
                     durationText: '0:30',
                     src: item.previewUrl,
                     cover: highResArtwork
@@ -653,5 +697,6 @@ document.querySelectorAll('.nav-item').forEach(btn => {
 document.getElementById('lyricsToggleBtn').addEventListener('click', () => showToast("Synced lyrics coming soon!"));
 
 // Init
+playlist = [...defaultPlaylist];
 loadSong(0);
 renderSongs();
