@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#030305">
     <title>Wavly</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -57,9 +59,9 @@
             <!-- Mood Chips -->
             <div class="mood-chips" id="moodChips">
                 <button class="chip active" data-mood="All">All</button>
+                <button class="chip" data-mood="Offline">Downloaded</button>
                 <button class="chip" data-mood="Chill">Chill</button>
                 <button class="chip" data-mood="Focus">Focus</button>
-                <button class="chip" data-mood="Night">Night Drive</button>
                 <button class="chip" data-mood="Energy">Energy</button>
             </div>
 
@@ -67,21 +69,21 @@
             <section class="hero-card" id="heroCard">
                 <div class="hero-overlay"></div>
                 <div class="hero-content">
-                    <span class="hero-tag">WAVLY PREVIEW</span>
+                    <span class="hero-tag">WAVLY OFFLINE READY</span>
                     <h2 id="heroTitle">Midnight Echoes</h2>
-                    <p id="heroArtist">Search & Preview Engine Active</p>
+                    <p id="heroArtist">Stream & Save for Offline Listening</p>
                     <button class="hero-play-btn" id="heroPlayBtn">
                         <span class="material-icons-round">play_arrow</span> Tugtugin
                     </button>
                 </div>
             </section>
 
-            <!-- Section: Quick Picks -->
+            <!-- Section: Quick Picks / Downloaded -->
             <section class="feed-section">
                 <div class="section-header">
                     <div>
-                        <span class="eyebrow">CURATED HITS</span>
-                        <h3>Quick picks</h3>
+                        <span class="eyebrow" id="feedEyebrow">CURATED HITS</span>
+                        <h3 id="feedTitle">Quick picks</h3>
                     </div>
                 </div>
                 <div class="song-list" id="songList"></div>
@@ -140,7 +142,7 @@
                     <span>PLAYING FROM WAVLY</span>
                     <strong id="playingMoodLabel">Search Preview</strong>
                 </div>
-                <button class="icon-btn glass-circle" id="sheetDownloadBtn">
+                <button class="icon-btn glass-circle" id="sheetDownloadBtn" title="Download Offline">
                     <span class="material-icons-round">download</span>
                 </button>
             </div>
@@ -169,7 +171,7 @@
                     <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
                     <div class="time-stamps">
                         <span id="currentTime">0:00</span>
-                        <span class="audio-quality-badge">PREVIEW 30S</span>
+                        <span class="audio-quality-badge" id="offlineBadge">STREAMING</span>
                         <span id="duration">0:30</span>
                     </div>
                 </div>
@@ -199,7 +201,7 @@
                     </button>
                     <div class="output-device">
                         <span class="material-icons-round">headphones</span>
-                        <span>Wavly Engine</span>
+                        <span>Wavly Background Engine</span>
                     </div>
                     <button class="icon-btn" id="queueToggleBtn">
                         <span class="material-icons-round">queue_music</span>
@@ -221,7 +223,7 @@
             </button>
             <button class="nav-item" data-tab="library">
                 <span class="material-icons-round">library_music</span>
-                <span>Library</span>
+                <span>Offline</span>
             </button>
         </nav>
     </div>
