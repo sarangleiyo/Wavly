@@ -1,5 +1,8 @@
-// Default Playlist (Curated hits na may working audio previews)
-let playlist = [
+const OFFLINE_CACHE = 'wavly-offline-v2';
+const STORAGE_KEY = 'wavly_downloaded_songs';
+
+// Default Curated Hits
+const defaultPlaylist = [
     {
         id: "1",
         title: "Blinding Lights",
@@ -38,6 +41,28 @@ let playlist = [
     }
 ];
 
+// Load saved offline songs from LocalStorage
+function getDownloadedSongs() {
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+function saveDownloadedSongs(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+// Merge downloaded songs with default playlist (avoid duplicates)
+let downloadedSongs = getDownloadedSongs();
+let playlist = [...downloadedSongs];
+defaultPlaylist.forEach(def => {
+    if (!playlist.some(s => s.id === def.id)) {
+        playlist.push(def);
+    }
+});
+
 let currentIndex = 0;
 let activeMood = "All";
 let isShuffle = false;
@@ -74,6 +99,8 @@ const nextBtn = document.getElementById('nextBtn');
 const shuffleBtn = document.getElementById('shuffleBtn');
 const repeatBtn = document.getElementById('repeatBtn');
 const favBtn = document.getElementById('favBtn');
+const sheetDownloadBtn = document.getElementById('sheetDownloadBtn');
+const offlineBadge = document.getElementById('offlineBadge');
 const progressBar = document.getElementById('progressBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
@@ -91,40 +118,93 @@ function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
 }
 
-// Render Home Screen Feeds
+function isSongDownloaded(songId) {
+    return downloadedSongs.some(s => s.id === songId);
+}
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("Wavly Service Worker active"))
+            .catch(err => console.log("SW error:", err));
+    });
+}
+
+// Update Lockscreen & Background Notification Controls (Media Session API)
+function updateMediaSession(song) {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.title,
+            artist: song.artist,
+            album: 'Wavly Music',
+            artwork: [
+                { src: song.cover, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', playSong);
+        navigator.mediaSession.setActionHandler('pause', pauseSong);
+        navigator.mediaSession.setActionHandler('previoustrack', playPrev);
+        navigator.mediaSession.setActionHandler('nexttrack', playNext);
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+            if (details.seekTime && audioElement.duration) {
+                audioElement.currentTime = details.seekTime;
+            }
+        });
+    }
+}
+
+// Render Song List
 function renderSongs() {
-    const filtered = activeMood === "All" 
-        ? playlist 
-        : playlist.filter(s => s.mood === activeMood);
+    let filtered = playlist;
+    if (activeMood === "Offline") {
+        filtered = downloadedSongs;
+        document.getElementById('feedEyebrow').textContent = "SAVED ON DEVICE";
+        document.getElementById('feedTitle').textContent = `Downloaded (${downloadedSongs.length})`;
+    } else if (activeMood !== "All") {
+        filtered = playlist.filter(s => s.mood === activeMood);
+        document.getElementById('feedEyebrow').textContent = "MOOD MIX";
+        document.getElementById('feedTitle').textContent = activeMood;
+    } else {
+        document.getElementById('feedEyebrow').textContent = "CURATED HITS";
+        document.getElementById('feedTitle').textContent = "Quick picks";
+    }
 
     songListEl.innerHTML = '';
-    filtered.forEach((song, idx) => {
-        const realIndex = playlist.findIndex(item => item.id === song.id);
-        const isCurrent = realIndex === currentIndex;
 
-        const item = document.createElement('div');
-        item.className = `song-item ${isCurrent ? 'playing' : ''}`;
-        item.innerHTML = `
-            <img src="${song.cover}" alt="${song.title}">
-            <div class="song-info">
-                <h4>${song.title}</h4>
-                <p>${song.artist} • ${song.mood || 'Preview'}</p>
-            </div>
-            <span class="song-duration-tag">${song.durationText}</span>
-        `;
-        item.addEventListener('click', () => {
-            loadSong(realIndex);
-            playSong();
-            openSheet();
+    if (filtered.length === 0) {
+        songListEl.innerHTML = `<p class="search-hint" style="margin: 20px 0;">Wala pang naka-download na kanta. Pindutin ang download icon sa player para ma-save offline!</p>`;
+    } else {
+        filtered.forEach((song) => {
+            const realIndex = playlist.findIndex(item => item.id === song.id);
+            const isCurrent = realIndex === currentIndex;
+            const downloaded = isSongDownloaded(song.id);
+
+            const item = document.createElement('div');
+            item.className = `song-item ${isCurrent ? 'playing' : ''}`;
+            item.innerHTML = `
+                <img src="${song.cover}" alt="${song.title}">
+                <div class="song-info">
+                    <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
+                    <p>${song.artist} • ${downloaded ? 'Offline Ready' : (song.mood || 'Stream')}</p>
+                </div>
+                <span class="song-duration-tag">${song.durationText || '0:30'}</span>
+            `;
+            item.addEventListener('click', () => {
+                loadSong(realIndex);
+                playSong();
+                openSheet();
+            });
+            songListEl.appendChild(item);
         });
-        songListEl.appendChild(item);
-    });
+    }
 
     carouselListEl.innerHTML = '';
-    playlist.forEach((song, idx) => {
+    playlist.slice(0, 8).forEach((song, idx) => {
         const card = document.createElement('div');
         card.className = 'carousel-card';
         card.innerHTML = `
@@ -140,9 +220,27 @@ function renderSongs() {
     });
 }
 
+function updateDownloadButtonUI(song) {
+    const downloaded = isSongDownloaded(song.id);
+    const iconSpan = sheetDownloadBtn.querySelector('span');
+    if (downloaded) {
+        iconSpan.textContent = 'download_done';
+        sheetDownloadBtn.style.color = '#fa2d48';
+        offlineBadge.textContent = 'OFFLINE SAVED';
+        offlineBadge.style.color = '#ff7eb3';
+    } else {
+        iconSpan.textContent = 'download';
+        sheetDownloadBtn.style.color = '#ffffff';
+        offlineBadge.textContent = 'PREVIEW 30S';
+        offlineBadge.style.color = 'rgba(255,255,255,0.85)';
+    }
+}
+
 function loadSong(index) {
     currentIndex = index;
     const song = playlist[index];
+    if (!song) return;
+
     audioElement.src = song.src;
     audioElement.load();
 
@@ -155,7 +253,7 @@ function loadSong(index) {
     fullTitle.textContent = song.title;
     miniArtist.textContent = song.artist;
     fullArtist.textContent = song.artist;
-    playingMoodLabel.textContent = song.mood || 'Live Search Preview';
+    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Downloaded Offline' : (song.mood || 'Live Stream');
 
     progressBar.value = 0;
     miniProgressFill.style.width = '0%';
@@ -163,6 +261,8 @@ function loadSong(index) {
     durationEl.textContent = song.durationText || '0:30';
 
     updateLikeUI();
+    updateDownloadButtonUI(song);
+    updateMediaSession(song);
     renderSongs();
 }
 
@@ -172,9 +272,12 @@ async function playSong() {
         miniPlayBtn.querySelector('span').textContent = 'pause';
         playPauseBtn.querySelector('span').textContent = 'pause';
         artworkContainer.classList.add('is-playing');
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
+        }
     } catch (err) {
         console.error("Playback error:", err);
-        showToast("Tap play again to start audio");
+        showToast("Pindutin ulit ang Play para magsimula");
     }
 }
 
@@ -183,6 +286,9 @@ function pauseSong() {
     miniPlayBtn.querySelector('span').textContent = 'play_arrow';
     playPauseBtn.querySelector('span').textContent = 'play_arrow';
     artworkContainer.classList.remove('is-playing');
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+    }
 }
 
 function togglePlayPause() {
@@ -272,12 +378,46 @@ favBtn.addEventListener('click', () => {
         showToast("Removed from Liked");
     } else {
         likedIds.add(song.id);
-        showToast(`Added to Liked Songs`);
+        showToast("Added to Liked Songs");
     }
     updateLikeUI();
 });
 
-// Slider & Scrubber Fixes
+// Offline Download Button Handler
+sheetDownloadBtn.addEventListener('click', async () => {
+    const song = playlist[currentIndex];
+    if (!song || !song.src) return;
+
+    if (isSongDownloaded(song.id)) {
+        showToast("Naka-save na ito sa Offline library mo!");
+        return;
+    }
+
+    showToast(`Nagda-download: "${song.title}"...`);
+
+    try {
+        const cache = await caches.open(OFFLINE_CACHE);
+        // Fetch with no-cors fallback para siguradong ma-cache ang audio stream
+        const audioRes = await fetch(song.src, { mode: 'no-cors' });
+        await cache.put(song.src, audioRes);
+
+        try {
+            const coverRes = await fetch(song.cover, { mode: 'no-cors' });
+            await cache.put(song.cover, coverRes);
+        } catch {}
+
+        downloadedSongs.unshift(song);
+        saveDownloadedSongs(downloadedSongs);
+        updateDownloadButtonUI(song);
+        renderSongs();
+        showToast(`Na-save offline: "${song.title}" ✓`);
+    } catch (err) {
+        console.error("Download error:", err);
+        showToast("Hindi ma-download. Check internet connection.");
+    }
+});
+
+// Slider / Scrubber
 progressBar.addEventListener('mousedown', () => isSeeking = true);
 progressBar.addEventListener('touchstart', () => isSeeking = true, { passive: true });
 
@@ -317,6 +457,7 @@ function closeSheet() { nowPlayingSheet.classList.remove('active'); }
 openPlayerBtn.addEventListener('click', openSheet);
 closePlayerBtn.addEventListener('click', closeSheet);
 
+// Mood Chips Filter (Kasama na ang "Downloaded" chip)
 document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -326,7 +467,7 @@ document.querySelectorAll('.chip').forEach(chip => {
     });
 });
 
-// Real-Time Online Search Integration (iTunes Music API for instant previews)
+// Live Online Search
 openSearchBtn.addEventListener('click', () => {
     searchOverlay.classList.add('active');
     setTimeout(() => searchInput.focus(), 150);
@@ -388,9 +529,13 @@ searchInput.addEventListener('input', (e) => {
                 `;
 
                 row.addEventListener('click', () => {
-                    // Idagdag sa unahan ng playlist para ma-play agad
-                    playlist.unshift(songObj);
-                    loadSong(0);
+                    const existingIdx = playlist.findIndex(s => s.id === songObj.id);
+                    if (existingIdx !== -1) {
+                        loadSong(existingIdx);
+                    } else {
+                        playlist.unshift(songObj);
+                        loadSong(0);
+                    }
                     playSong();
                     searchOverlay.classList.remove('active');
                     openSheet();
@@ -400,22 +545,33 @@ searchInput.addEventListener('input', (e) => {
             });
         } catch (err) {
             console.error(err);
-            searchResults.innerHTML = '<p class="search-hint">Nagka-error sa paghahanap. Subukan ulit.</p>';
+            searchResults.innerHTML = '<p class="search-hint">Offline ka ngayon. Pumunta sa Downloaded tab para sa saved songs.</p>';
         }
     }, 400);
 });
 
+// Bottom Navigation Tabs
 document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if (btn.dataset.tab !== 'home') {
-            showToast(`${btn.dataset.tab.toUpperCase()} coming in Phase 2`);
+
+        if (btn.dataset.tab === 'library') {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            document.querySelector('.chip[data-mood="Offline"]').classList.add('active');
+            activeMood = "Offline";
+            renderSongs();
+        } else if (btn.dataset.tab === 'home') {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            document.querySelector('.chip[data-mood="All"]').classList.add('active');
+            activeMood = "All";
+            renderSongs();
+        } else {
+            showToast("Explore mixes coming soon!");
         }
     });
 });
 
-document.getElementById('sheetDownloadBtn').addEventListener('click', () => showToast("Offline download coming in Phase 2!"));
 document.getElementById('lyricsToggleBtn').addEventListener('click', () => showToast("Synced lyrics coming soon!"));
 
 // Init
