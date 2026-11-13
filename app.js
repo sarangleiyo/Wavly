@@ -1,6 +1,6 @@
-const OFFLINE_CACHE = 'wavly-offline-v2';
-const STORAGE_KEY = 'wavly_downloaded_songs';
+const STORAGE_KEY = 'wavly_playlists_v1';
 
+// Default Curated Playlist
 const defaultPlaylist = [
     {
         id: "1",
@@ -26,7 +26,7 @@ const defaultPlaylist = [
         artist: "The Kid LAROI & Justin Bieber",
         mood: "Energy",
         durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
+        src: "https://audio-ssl.itunes.assets.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
         cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/95/fb/6a/95fb6a6d-cb53-06a1-94ef-65d1b72e1268/21UMGIM56449.rgb.jpg/600x600bb.jpg"
     },
     {
@@ -40,28 +40,32 @@ const defaultPlaylist = [
     }
 ];
 
-function getDownloadedSongs() {
+// Load Playlists from LocalStorage o gawa ng default "Offline Downloads" playlist
+function getStoredPlaylists() {
     try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch {
-        return [];
-    }
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && saved.length > 0) return saved;
+    } catch {}
+
+    return [
+        {
+            id: "offline-downloads",
+            name: "Offline Downloads 📥",
+            songs: []
+        }
+    ];
 }
 
-function saveDownloadedSongs(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+function savePlaylists(lists) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
 }
 
-let downloadedSongs = getDownloadedSongs();
-let playlist = [...downloadedSongs];
-defaultPlaylist.forEach(def => {
-    if (!playlist.some(s => s.id === def.id)) {
-        playlist.push(def);
-    }
-});
+let playlists = getStoredPlaylists();
+let currentPlaylistId = "offline-downloads";
+let activeView = "home"; // 'home' or 'library'
 
+let playlist = [...defaultPlaylist];
 let currentIndex = 0;
-let activeMood = "All";
 let isShuffle = false;
 let isRepeat = false;
 let isSeeking = false;
@@ -69,6 +73,7 @@ const likedIds = new Set();
 
 const audioElement = document.getElementById('audioElement');
 
+// DOM Elements
 const songListEl = document.getElementById('songList');
 const carouselListEl = document.getElementById('carouselList');
 const miniImg = document.getElementById('miniImg');
@@ -116,8 +121,10 @@ function showToast(msg) {
     toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
 }
 
+// Check kung ang kanta ay nasa Offline Playlist na
 function isSongDownloaded(songId) {
-    return downloadedSongs.some(s => s.id === songId);
+    const offlineList = playlists.find(p => p.id === "offline-downloads");
+    return offlineList ? offlineList.songs.some(s => s.id === songId) : false;
 }
 
 if ('serviceWorker' in navigator) {
@@ -130,32 +137,19 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-async function getLocalBlobUrl(url) {
-    try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
-    } catch {
-        return url;
-    }
-}
-
 async function updateMediaSession(song) {
     if (!('mediaSession' in navigator)) return;
     try {
-        const blobUrl = await getLocalBlobUrl(song.cover);
         navigator.mediaSession.metadata = new MediaMetadata({
             title: song.title,
             artist: song.artist,
             album: 'Wavly',
             artwork: [
-                { src: blobUrl, sizes: '512x512', type: 'image/jpeg' },
-                { src: blobUrl, sizes: '256x256', type: 'image/jpeg' }
+                { src: song.cover, sizes: '512x512', type: 'image/jpeg' },
+                { src: song.cover, sizes: '256x256', type: 'image/jpeg' }
             ]
         });
-    } catch (e) {
-        console.error(e);
-    }
+    } catch {}
 }
 
 function updatePositionState() {
@@ -172,30 +166,18 @@ function updatePositionState() {
     }
 }
 
-// Render Song List na may fixed ID matching para hindi magloko ang tap
+// Render Home o Library / Playlists
 function renderSongs() {
-    let sourceList = playlist;
-    if (activeMood === "Offline") {
-        sourceList = downloadedSongs;
-        document.getElementById('feedEyebrow').textContent = "SAVED ON DEVICE";
-        document.getElementById('feedTitle').textContent = `Downloaded (${downloadedSongs.length})`;
-    } else if (activeMood !== "All") {
-        sourceList = playlist.filter(s => s.mood === activeMood);
-        document.getElementById('feedEyebrow').textContent = "MOOD MIX";
-        document.getElementById('feedTitle').textContent = activeMood;
-    } else {
-        document.getElementById('feedEyebrow').textContent = "CURATED HITS";
-        document.getElementById('feedTitle').textContent = "Quick picks";
-    }
-
     songListEl.innerHTML = '';
 
-    if (sourceList.length === 0) {
-        songListEl.innerHTML = `<p class="search-hint" style="margin: 20px 0;">Wala pang naka-download na kanta.</p>`;
-    } else {
-        sourceList.forEach((song) => {
-            const realIndex = playlist.findIndex(item => item.id === song.id);
-            const isCurrent = realIndex === currentIndex;
+    if (activeView === "home") {
+        document.getElementById('feedEyebrow').textContent = "CURATED HITS";
+        document.getElementById('feedTitle').textContent = "Quick picks";
+
+        playlist = [...defaultPlaylist];
+
+        playlist.forEach((song, idx) => {
+            const isCurrent = (playlist[currentIndex]?.id === song.id);
             const downloaded = isSongDownloaded(song.id);
 
             const item = document.createElement('div');
@@ -204,33 +186,141 @@ function renderSongs() {
                 <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
                 <div class="song-info">
                     <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
-                    <p>${song.artist} • ${downloaded ? 'Offline Ready' : (song.mood || 'Stream')}</p>
+                    <p>${song.artist} • ${song.mood || 'Stream'}</p>
                 </div>
                 <span class="song-duration-tag">${song.durationText || '0:30'}</span>
             `;
             item.addEventListener('click', () => {
-                loadSong(realIndex);
+                loadSong(idx);
                 playSong();
                 openSheet();
             });
             songListEl.appendChild(item);
         });
+
+        carouselListEl.innerHTML = '';
+        playlist.forEach((song, idx) => {
+            const card = document.createElement('div');
+            card.className = 'carousel-card';
+            card.innerHTML = `
+                <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
+                <h4>${song.title}</h4>
+                <p>${song.artist}</p>
+            `;
+            card.addEventListener('click', () => {
+                loadSong(idx);
+                playSong();
+            });
+            carouselListEl.appendChild(card);
+        });
+
+    } else {
+        // Library / Playlists View
+        document.getElementById('feedEyebrow').textContent = "MY LIBRARY & PLAYLISTS";
+        document.getElementById('feedTitle').textContent = "Your Playlists";
+
+        // Render create playlist button + list of playlists
+        let htmlContent = `
+            <div style="margin-bottom: 16px;">
+                <button id="createPlaylistBtn" style="width: 100%; padding: 12px; border-radius: 14px; background: rgba(250,45,72,0.15); border: 1px solid rgba(250,45,72,0.4); color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span class="material-icons-round">add</span> Create New Playlist
+                </button>
+            </div>
+        `;
+
+        playlists.forEach(list => {
+            htmlContent += `
+                <div class="playlist-folder-card" data-id="${list.id}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 3px;">${list.name}</h4>
+                        <p style="font-size: 12px; color: rgba(255,255,255,0.6);">${list.songs.length} saved songs</p>
+                    </div>
+                    <span class="material-icons-round" style="color: rgba(255,255,255,0.5);">chevron_right</span>
+                </div>
+            `;
+        });
+
+        songListEl.innerHTML = htmlContent;
+        carouselListEl.innerHTML = '';
+
+        document.getElementById('createPlaylistBtn').addEventListener('click', () => {
+            const playlistName = prompt("Ilagay ang pangalan ng bagong playlist:");
+            if (playlistName && playlistName.trim() !== "") {
+                const newList = {
+                    id: 'playlist_' + Date.now(),
+                    name: playlistName.trim(),
+                    songs: []
+                };
+                playlists.push(newList);
+                savePlaylists(playlists);
+                renderSongs();
+                showToast(`Nagawa na ang playlist na "${newList.name}"!`);
+            }
+        });
+
+        document.querySelectorAll('.playlist-folder-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const listId = card.dataset.id;
+                openPlaylistSongsModal(listId);
+            });
+        });
+    }
+}
+
+// Modal para tignan ang mga kanta sa loob ng isang partikular na Playlist
+function openPlaylistSongsModal(listId) {
+    const targetList = playlists.find(p => p.id === listId);
+    if (!targetList) return;
+
+    playlist = targetList.songs;
+    currentIndex = 0;
+
+    document.getElementById('feedEyebrow').textContent = targetList.name.toUpperCase();
+    document.getElementById('feedTitle').textContent = targetList.name;
+
+    if (playlist.length === 0) {
+        songListEl.innerHTML = `
+            <p class="search-hint" style="margin: 20px 0;">Wala pang kanta dito. Mag-search at i-save ang kanta papunta sa playlist na ito!</p>
+            <button id="backToLibBtn" style="padding: 8px 16px; border-radius: 10px; background: rgba(255,255,255,0.1); border: none; color: #fff; cursor: pointer;">← Bumalik sa Library</button>
+        `;
+        document.getElementById('backToLibBtn').addEventListener('click', renderSongs);
+        return;
     }
 
-    carouselListEl.innerHTML = '';
-    playlist.slice(0, 8).forEach((song, idx) => {
-        const card = document.createElement('div');
-        card.className = 'carousel-card';
-        card.innerHTML = `
+    songListEl.innerHTML = `<button id="backToLibBtn" style="margin-bottom: 12px; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.08); border: none; color: #fff; cursor: pointer; font-size: 12px;">← Balik sa Playlists</button>`;
+    document.getElementById('backToLibBtn').addEventListener('click', renderSongs);
+
+    playlist.forEach((song, idx) => {
+        const item = document.createElement('div');
+        item.className = `song-item`;
+        item.innerHTML = `
             <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
-            <h4>${song.title}</h4>
-            <p>${song.artist}</p>
+            <div class="song-info">
+                <h4>${song.title}</h4>
+                <p>${song.artist}</p>
+            </div>
+            <button class="remove-song-btn" data-id="${song.id}" style="background:none; border:none; color: #fa2d48; cursor:pointer; padding: 6px;">
+                <span class="material-icons-round">delete</span>
+            </button>
         `;
-        card.addEventListener('click', () => {
+        item.querySelector('.song-info').addEventListener('click', () => {
             loadSong(idx);
             playSong();
+            openSheet();
         });
-        carouselListEl.appendChild(card);
+        item.querySelector('.img')?.addEventListener('click', () => {
+            loadSong(idx);
+            playSong();
+            openSheet();
+        });
+        item.querySelector('.remove-song-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            targetList.songs = targetList.songs.filter(s => s.id !== song.id);
+            savePlaylists(playlists);
+            openPlaylistSongsModal(listId);
+            showToast("Tinanggal ang kanta sa playlist.");
+        });
+        songListEl.appendChild(item);
     });
 }
 
@@ -238,12 +328,12 @@ function updateDownloadButtonUI(song) {
     const downloaded = isSongDownloaded(song.id);
     const iconSpan = sheetDownloadBtn.querySelector('span');
     if (downloaded) {
-        iconSpan.textContent = 'download_done';
+        iconSpan.textContent = 'playlist_add_check';
         sheetDownloadBtn.style.color = '#fa2d48';
-        offlineBadge.textContent = 'OFFLINE SAVED';
+        offlineBadge.textContent = 'SAVED OFFLINE';
         offlineBadge.style.color = '#ff7eb3';
     } else {
-        iconSpan.textContent = 'download';
+        iconSpan.textContent = 'playlist_add';
         sheetDownloadBtn.style.color = '#ffffff';
         offlineBadge.textContent = 'PREVIEW 30S';
         offlineBadge.style.color = 'rgba(255,255,255,0.85)';
@@ -267,7 +357,7 @@ function loadSong(index) {
     fullTitle.textContent = song.title;
     miniArtist.textContent = song.artist;
     fullArtist.textContent = song.artist;
-    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Downloaded Offline' : (song.mood || 'Live Stream');
+    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : (song.mood || 'Live Stream');
 
     progressBar.value = 0;
     miniProgressFill.style.width = '0%';
@@ -277,7 +367,6 @@ function loadSong(index) {
     updateLikeUI();
     updateDownloadButtonUI(song);
     updateMediaSession(song);
-    renderSongs();
 }
 
 async function playSong() {
@@ -398,28 +487,38 @@ favBtn.addEventListener('click', () => {
     updateLikeUI();
 });
 
-sheetDownloadBtn.addEventListener('click', async () => {
+// Save to Playlist / Offline Download Button Handler
+sheetDownloadBtn.addEventListener('click', () => {
     const song = playlist[currentIndex];
-    if (!song || !song.src) return;
+    if (!song) return;
 
-    if (isSongDownloaded(song.id)) {
-        showToast("Naka-save na offline!");
-        return;
+    // Magpakita ng selection kung saang playlist ise-save (Spotify style)
+    let playlistNames = playlists.map((p, idx) => `${idx + 1}. ${p.name}`).join('\n');
+    let choice = prompt(`Piliin ang playlist kung saan mo gustong i-save:\n\n${playlistNames}\n\n(Mag-type ng numero o mag-type ng bagong pangalan ng playlist)`);
+
+    if (!choice) return;
+
+    let targetList;
+    const choiceNum = parseInt(choice);
+    if (!isNaN(choiceNum) && choiceNum > 0 && choiceNum <= playlists.length) {
+        targetList = playlists[choiceNum - 1];
+    } else {
+        // Gawa ng bagong playlist kung nag-type ng pangalan
+        targetList = {
+            id: 'playlist_' + Date.now(),
+            name: choice.trim(),
+            songs: []
+        };
+        playlists.push(targetList);
     }
 
-    showToast(`Nagda-download: "${song.title}"...`);
-
-    try {
-        const cache = await caches.open(OFFLINE_CACHE);
-        const audioRes = await fetch(song.src, { mode: 'no-cors' });
-        await cache.put(song.src, audioRes);
-        downloadedSongs.unshift(song);
-        saveDownloadedSongs(downloadedSongs);
+    if (!targetList.songs.some(s => s.id === song.id)) {
+        targetList.songs.push(song);
+        savePlaylists(playlists);
         updateDownloadButtonUI(song);
-        renderSongs();
-        showToast(`Na-save offline: "${song.title}" ✓`);
-    } catch {
-        showToast("Hindi ma-download.");
+        showToast(`Na-save sa "${targetList.name}" ✓`);
+    } else {
+        showToast(`Nasa "${targetList.name}" na ang kantang ito.`);
     }
 });
 
@@ -463,15 +562,6 @@ function openSheet() { nowPlayingSheet.classList.add('active'); }
 function closeSheet() { nowPlayingSheet.classList.remove('active'); }
 openPlayerBtn.addEventListener('click', openSheet);
 closePlayerBtn.addEventListener('click', closeSheet);
-
-document.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        activeMood = chip.dataset.mood;
-        renderSongs();
-    });
-});
 
 openSearchBtn.addEventListener('click', () => {
     searchOverlay.classList.add('active');
@@ -534,13 +624,8 @@ searchInput.addEventListener('input', (e) => {
                 `;
 
                 row.addEventListener('click', () => {
-                    const existingIdx = playlist.findIndex(s => s.id === songObj.id);
-                    if (existingIdx !== -1) {
-                        loadSong(existingIdx);
-                    } else {
-                        playlist.unshift(songObj);
-                        loadSong(0);
-                    }
+                    playlist = [songObj, ...defaultPlaylist];
+                    loadSong(0);
                     playSong();
                     searchOverlay.classList.remove('active');
                     openSheet();
@@ -554,23 +639,26 @@ searchInput.addEventListener('input', (e) => {
     }, 400);
 });
 
+// Bottom Navigation Tabs (Home vs Library/Playlists)
 document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
         if (btn.dataset.tab === 'library') {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            document.querySelector('.chip[data-mood="Offline"]').classList.add('active');
-            activeMood = "Offline";
+            activeView = "library";
             renderSongs();
         } else if (btn.dataset.tab === 'home') {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            document.querySelector('.chip[data-mood="All"]').classList.add('active');
-            activeMood = "All";
+            activeView = "home";
             renderSongs();
+        } else {
+            showToast("Explore mixes coming soon!");
         }
     });
 });
 
+document.getElementById('lyricsToggleBtn').addEventListener('click', () => showToast("Synced lyrics coming soon!"));
+
+// Init
 loadSong(0);
+renderSongs();
