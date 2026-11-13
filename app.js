@@ -1,7 +1,6 @@
 const OFFLINE_CACHE = 'wavly-offline-v2';
 const STORAGE_KEY = 'wavly_downloaded_songs';
 
-// Default Curated Hits
 const defaultPlaylist = [
     {
         id: "1",
@@ -70,7 +69,6 @@ const likedIds = new Set();
 
 const audioElement = document.getElementById('audioElement');
 
-// DOM Elements
 const songListEl = document.getElementById('songList');
 const carouselListEl = document.getElementById('carouselList');
 const miniImg = document.getElementById('miniImg');
@@ -103,7 +101,6 @@ const progressBar = document.getElementById('progressBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 
-// Search Elements
 const openSearchBtn = document.getElementById('openSearchBtn');
 const closeSearchBtn = document.getElementById('closeSearchBtn');
 const searchOverlay = document.getElementById('searchOverlay');
@@ -123,71 +120,46 @@ function isSongDownloaded(songId) {
     return downloadedSongs.some(s => s.id === songId);
 }
 
-// Register Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log("Wavly Service Worker active"))
-            .catch(err => console.log("SW error:", err));
+        navigator.mediaSession?.setActionHandler?.('play', playSong);
+        navigator.mediaSession?.setActionHandler?.('pause', pauseSong);
+        navigator.mediaSession?.setActionHandler?.('previoustrack', playPrev);
+        navigator.mediaSession?.setActionHandler?.('nexttrack', playNext);
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
 }
 
-// Helper: Convert Cover URL to DataURL (Base64) para siguradong lumabas sa Dynamic Island & Lockscreen
-async function getArtworkForSystemUI(imageUrl) {
+// I-fetch ang image bilang blob para basahin ng Android System / Notification nang walang CORS block
+async function getLocalBlobUrl(url) {
     try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = imageUrl;
-        await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-        });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 256;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, 256, 256);
-        return canvas.toDataURL('image/png');
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
     } catch {
-        // Fallback sa original URL kapag may CORS restriction sa image
-        return imageUrl;
+        return url;
     }
 }
 
-// Update Dynamic Island, Lockscreen & Notification Controls (Media Session API)
 async function updateMediaSession(song) {
     if (!('mediaSession' in navigator)) return;
 
-    const processedArt = await getArtworkForSystemUI(song.cover);
-    const smallCover = song.cover.replace('600x600bb.jpg', '100x100bb.jpg');
-    const medCover = song.cover.replace('600x600bb.jpg', '300x300bb.jpg');
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-        title: song.title,
-        artist: song.artist,
-        album: 'Wavly',
-        artwork: [
-            { src: processedArt, sizes: '256x256', type: 'image/png' },
-            { src: smallCover, sizes: '96x96', type: 'image/jpeg' },
-            { src: medCover, sizes: '256x256', type: 'image/jpeg' },
-            { src: song.cover, sizes: '512x512', type: 'image/jpeg' }
-        ]
-    });
-
-    navigator.mediaSession.setActionHandler('play', playSong);
-    navigator.mediaSession.setActionHandler('pause', pauseSong);
-    navigator.mediaSession.setActionHandler('previoustrack', playPrev);
-    navigator.mediaSession.setActionHandler('nexttrack', playNext);
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime !== undefined && audioElement.duration) {
-            audioElement.currentTime = details.seekTime;
-            updatePositionState();
-        }
-    });
+    try {
+        const blobUrl = await getLocalBlobUrl(song.cover);
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.title,
+            artist: song.artist,
+            album: 'Wavly',
+            artwork: [
+                { src: blobUrl, sizes: '512x512', type: 'image/jpeg' },
+                { src: blobUrl, sizes: '256x256', type: 'image/jpeg' }
+            ]
+        });
+    } catch (e) {
+        console.error("MediaSession error:", e);
+    }
 }
 
-// Sync timeline bar sa Dynamic Island / Lockscreen
 function updatePositionState() {
     if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
         if (audioElement.duration && !isNaN(audioElement.duration)) {
@@ -202,7 +174,6 @@ function updatePositionState() {
     }
 }
 
-// Render Song List
 function renderSongs() {
     let filtered = playlist;
     if (activeMood === "Offline") {
@@ -221,7 +192,7 @@ function renderSongs() {
     songListEl.innerHTML = '';
 
     if (filtered.length === 0) {
-        songListEl.innerHTML = `<p class="search-hint" style="margin: 20px 0;">Wala pang naka-download na kanta. Pindutin ang download icon sa player para ma-save offline!</p>`;
+        songListEl.innerHTML = `<p class="search-hint" style="margin: 20px 0;">Wala pang naka-download na kanta.</p>`;
     } else {
         filtered.forEach((song) => {
             const realIndex = playlist.findIndex(item => item.id === song.id);
@@ -231,7 +202,7 @@ function renderSongs() {
             const item = document.createElement('div');
             item.className = `song-item ${isCurrent ? 'playing' : ''}`;
             item.innerHTML = `
-                <img src="${song.cover}" alt="${song.title}">
+                <img src="${song.cover}" alt="${song.title}" crossorigin="anonymous">
                 <div class="song-info">
                     <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
                     <p>${song.artist} • ${downloaded ? 'Offline Ready' : (song.mood || 'Stream')}</p>
@@ -252,7 +223,7 @@ function renderSongs() {
         const card = document.createElement('div');
         card.className = 'carousel-card';
         card.innerHTML = `
-            <img src="${song.cover}" alt="${song.title}">
+            <img src="${song.cover}" alt="${song.title}" crossorigin="anonymous">
             <h4>${song.title}</h4>
             <p>${song.artist}</p>
         `;
@@ -322,7 +293,7 @@ async function playSong() {
         }
     } catch (err) {
         console.error("Playback error:", err);
-        showToast("Pindutin ulit ang Play para magsimula");
+        showToast("Pindutin ulit ang Play");
     }
 }
 
@@ -423,18 +394,17 @@ favBtn.addEventListener('click', () => {
         showToast("Removed from Liked");
     } else {
         likedIds.add(song.id);
-        showToast("Added to Liked Songs");
+        showToast("Added to Liked");
     }
     updateLikeUI();
 });
 
-// Offline Download Button Handler
 sheetDownloadBtn.addEventListener('click', async () => {
     const song = playlist[currentIndex];
     if (!song || !song.src) return;
 
     if (isSongDownloaded(song.id)) {
-        showToast("Naka-save na ito sa Offline library mo!");
+        showToast("Naka-save na offline!");
         return;
     }
 
@@ -444,24 +414,16 @@ sheetDownloadBtn.addEventListener('click', async () => {
         const cache = await caches.open(OFFLINE_CACHE);
         const audioRes = await fetch(song.src, { mode: 'no-cors' });
         await cache.put(song.src, audioRes);
-
-        try {
-            const coverRes = await fetch(song.cover, { mode: 'no-cors' });
-            await cache.put(song.cover, coverRes);
-        } catch {}
-
         downloadedSongs.unshift(song);
         saveDownloadedSongs(downloadedSongs);
         updateDownloadButtonUI(song);
         renderSongs();
         showToast(`Na-save offline: "${song.title}" ✓`);
-    } catch (err) {
-        console.error("Download error:", err);
-        showToast("Hindi ma-download. Check internet connection.");
+    } catch {
+        showToast("Hindi ma-download.");
     }
 });
 
-// Slider / Scrubber
 progressBar.addEventListener('mousedown', () => isSeeking = true);
 progressBar.addEventListener('touchstart', () => isSeeking = true, { passive: true });
 
@@ -503,7 +465,6 @@ function closeSheet() { nowPlayingSheet.classList.remove('active'); }
 openPlayerBtn.addEventListener('click', openSheet);
 closePlayerBtn.addEventListener('click', closeSheet);
 
-// Mood Chips Filter
 document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -513,7 +474,6 @@ document.querySelectorAll('.chip').forEach(chip => {
     });
 });
 
-// Live Online Search
 openSearchBtn.addEventListener('click', () => {
     searchOverlay.classList.add('active');
     setTimeout(() => searchInput.focus(), 150);
@@ -523,7 +483,7 @@ closeSearchBtn.addEventListener('click', () => searchOverlay.classList.remove('a
 clearSearchBtn.addEventListener('click', () => {
     searchInput.value = '';
     clearSearchBtn.style.display = 'none';
-    searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artista para maghanap...</p>';
+    searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artista...</p>';
     searchInput.focus();
 });
 
@@ -534,11 +494,11 @@ searchInput.addEventListener('input', (e) => {
 
     clearTimeout(searchTimer);
     if (!query) {
-        searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artista para maghanap...</p>';
+        searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artista...</p>';
         return;
     }
 
-    searchResults.innerHTML = '<p class="search-hint">Naghahanap sa cloud...</p>';
+    searchResults.innerHTML = '<p class="search-hint">Naghahanap...</p>';
 
     searchTimer = setTimeout(async () => {
         try {
@@ -546,7 +506,7 @@ searchInput.addEventListener('input', (e) => {
             const data = await res.json();
 
             if (!data.results || data.results.length === 0) {
-                searchResults.innerHTML = `<p class="search-hint">Walang nakitang kanta para sa "${query}"</p>`;
+                searchResults.innerHTML = `<p class="search-hint">Walang nakitang kanta.</p>`;
                 return;
             }
 
@@ -567,7 +527,7 @@ searchInput.addEventListener('input', (e) => {
                 const row = document.createElement('div');
                 row.className = 'song-item';
                 row.innerHTML = `
-                    <img src="${songObj.cover}" alt="${songObj.title}">
+                    <img src="${songObj.cover}" alt="${songObj.title}" crossorigin="anonymous">
                     <div class="song-info">
                         <h4>${songObj.title}</h4>
                         <p>${songObj.artist} • ${songObj.mood}</p>
@@ -589,14 +549,12 @@ searchInput.addEventListener('input', (e) => {
 
                 searchResults.appendChild(row);
             });
-        } catch (err) {
-            console.error(err);
-            searchResults.innerHTML = '<p class="search-hint">Offline ka ngayon. Pumunta sa Downloaded tab para sa saved songs.</p>';
+        } catch {
+            searchResults.innerHTML = '<p class="search-hint">May error sa paghahanap.</p>';
         }
     }, 400);
 });
 
-// Bottom Navigation Tabs
 document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -612,13 +570,8 @@ document.querySelectorAll('.nav-item').forEach(btn => {
             document.querySelector('.chip[data-mood="All"]').classList.add('active');
             activeMood = "All";
             renderSongs();
-        } else {
-            showToast("Explore mixes coming soon!");
         }
     });
 });
 
-document.getElementById('lyricsToggleBtn').addEventListener('click', () => showToast("Synced lyrics coming soon!"));
-
-// Init
 loadSong(0);
