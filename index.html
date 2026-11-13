@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wavly - Music Player</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts & Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        
+        <!-- Header / YouTube Music Vibe -->
+        <header class="app-header">
+            <div class="logo-area">
+                <h1>Wavly</h1>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn"><span class="material-icons-round">search</span></button>
+                <button class="icon-btn"><span class="material-icons-round">account_circle</span></button>
+            </div>
+        </header>
+
+        <!-- Main Content Feed -->
+        <main class="content-feed">
+            <section class="welcome-section">
+                <h2>Good day, Tropa</h2>
+                <p>Jump back in or explore new beats.</p>
+            </section>
+
+            <!-- Song List (YT Music Feed Style) -->
+            <div class="song-list" id="songList">
+                <!-- Dynamically populated via JS or static items -->
+            </div>
+        </main>
+
+        <!-- Mini Player Bar -->
+        <div class="mini-player" id="miniPlayer">
+            <div class="mini-art">
+                <img id="miniImg" src="" alt="Album Art">
+            </div>
+            <div class="mini-info" id="openPlayerBtn">
+                <h4 id="miniTitle">Pili ng Kanta</h4>
+                <p id="miniArtist">Wavly Sound</p>
+            </div>
+            <div class="mini-controls">
+                <button id="miniPlayBtn" class="icon-btn"><span class="material-icons-round">play_arrow</span></button>
+                <button id="miniNextBtn" class="icon-btn"><span class="material-icons-round">skip_next</span></button>
+            </div>
+        </div>
+
+        <!-- Apple Music Style - Fullscreen Now Playing Sheet -->
+        <div class="now-playing-sheet" id="nowPlayingSheet">
+            <div class="sheet-header">
+                <button class="icon-btn" id="closePlayerBtn"><span class="material-icons-round">expand_more</span></button>
+                <div class="drag-handle"></div>
+                <button class="icon-btn"><span class="material-icons-round">more_horiz</span></button>
+            </div>
+
+            <div class="sheet-body">
+                <!-- Blurred Dynamic Background Overlay -->
+                <div class="blur-bg" id="blurBg"></div>
+
+                <div class="artwork-container">
+                    <img id="fullImg" src="" alt="Album Art">
+                </div>
+
+                <div class="song-meta-large">
+                    <div>
+                        <h2 id="fullTitle">Song Title</h2>
+                        <p id="fullArtist">Artist Name</p>
+                    </div>
+                    <button class="icon-btn favorite-btn"><span class="material-icons-round">favorite_border</span></button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <input type="range" id="progressBar" value="0" min="0" max="100">
+                    <div class="time-stamps">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Main Playback Controls (Apple Music Style) -->
+                <div class="playback-controls">
+                    <button class="icon-btn secondary"><span class="material-icons-round">shuffle</span></button>
+                    <button class="icon-btn primary" id="prevBtn"><span class="material-icons-round">skip_previous</span></button>
+                    <button class="icon-btn play-pause-large" id="playPauseBtn"><span class="material-icons-round">play_arrow</span></button>
+                    <button class="icon-btn primary" id="nextBtn"><span class="material-icons-round">skip_next</span></button>
+                    <button class="icon-btn secondary"><span class="material-icons-round">repeat</span></button>
+                </div>
+
+                <!-- Bottom Extra Actions -->
+                <div class="sheet-footer-actions">
+                    <button class="icon-btn"><span class="material-icons-round">lyrics</span></button>
+                    <button class="icon-btn"><span class="material-icons-round">airplay</span></button>
+                    <button class="icon-btn" id="downloadBtn"><span class="material-icons-round">download</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Bar (YT Music Vibe) -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <span class="material-icons-round">home</span>
+                <span>Home</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-round">explore</span>
+                <span>Explore</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="material-icons-round">library_music</span>
+                <span>Library</span>
+            </a>
+        </nav>
+
+    </div>
+
+    <audio id="audioElement"></audio>
+    <script src="app.js"></script>
+</body>
+</html>
