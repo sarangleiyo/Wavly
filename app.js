@@ -1,62 +1,67 @@
 const STORAGE_KEY = 'wavly_playlists_v1';
 
-// Default Curated Playlist na may kasamang OPM Hits at Pinoy Hip-Hop/Rap
-const defaultPlaylist = [
+// Hiwalay na Global Hits at OPM/Rap Charts
+const globalCharts = [
     {
-        id: "1",
+        id: "g1",
+        title: "Blinding Lights",
+        artist: "The Weeknd",
+        mood: "Global Chart",
+        durationText: "0:30",
+        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a",
+        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/74/d3/18/74d318e8-d65e-2b1b-967b-1361c47144e5/19UMGIM05610.rgb.jpg/600x600bb.jpg"
+    },
+    {
+        id: "g2",
+        title: "Levitating",
+        artist: "Dua Lipa",
+        mood: "Global Chart",
+        durationText: "0:30",
+        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
+        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/55/e2/e8/55e2e8e6-1215-28b9-497b-3b60cd5e04b7/20UMGIM81561.rgb.jpg/600x600bb.jpg"
+    },
+    {
+        id: "g3",
+        title: "Stay",
+        artist: "The Kid LAROI & Justin Bieber",
+        mood: "Global Chart",
+        durationText: "0:30",
+        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
+        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/95/fb/6a/95fb6a6d-cb53-06a1-94ef-65d1b72e1268/21UMGIM56449.rgb.jpg/600x600bb.jpg"
+    }
+];
+
+const opmCharts = [
+    {
+        id: "o1",
         title: "Alam Mo Ba Girl",
         artist: "Hev Abi",
-        mood: "Chill",
+        mood: "OPM Chart",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a",
         cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80"
     },
     {
-        id: "2",
+        id: "o2",
         title: "Gusto",
         artist: "Zack Tabudlo & Al James",
-        mood: "Energy",
+        mood: "OPM Chart",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
         cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&auto=format&fit=crop&q=80"
     },
     {
-        id: "3",
-        title: "Ilang Taon Na Ba",
-        artist: "Flow G",
-        mood: "Energy",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
-        cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80"
-    },
-    {
-        id: "4",
+        id: "o3",
         title: "Dilaw",
         artist: "Maki",
-        mood: "Chill",
+        mood: "OPM Chart",
         durationText: "0:30",
         src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/a4/6a/d0/a46ad07a-289b-8710-53e3-85f2658f8b8a/mza_15510619932174246995.plus.aac.p.m4a",
         cover: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80"
-    },
-    {
-        id: "5",
-        title: "Bawat Piyesa",
-        artist: "Munimuni",
-        mood: "Focus",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
-        cover: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80"
     }
 ];
 
-// Best OPM & Hip-Hop Artists featured list
-const bestArtists = [
-    { name: "Hev Abi", genre: "Pinoy R&B / Rap", img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60" },
-    { name: "Flow G", genre: "Hip-Hop / Rap", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=60" },
-    { name: "Zack Tabudlo", genre: "OPM Pop / Soul", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=60" },
-    { name: "Al James", genre: "Smooth Rap / OPM", img: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=60" },
-    { name: "Maki", genre: "Modern OPM", img: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=60" }
-];
+let playlist = [...globalCharts, ...opmCharts];
 
 function getStoredPlaylists() {
     try {
@@ -80,7 +85,6 @@ function savePlaylists(lists) {
 let playlists = getStoredPlaylists();
 let activeView = "home";
 
-let playlist = [...defaultPlaylist];
 let currentIndex = 0;
 let isShuffle = false;
 let isRepeat = false;
@@ -158,7 +162,7 @@ async function updateMediaSession(song) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: song.title,
             artist: song.artist,
-            album: 'Wavly OPM',
+            album: 'Wavly Charts',
             artwork: [
                 { src: song.cover, sizes: '512x512', type: 'image/jpeg' },
                 { src: song.cover, sizes: '256x256', type: 'image/jpeg' }
@@ -181,79 +185,63 @@ function updatePositionState() {
     }
 }
 
-// Render Songs (Kasama na ang Best Artists section sa Home)
+// Render Home View (Global Charts & OPM Charts Separated)
 function renderSongs() {
     songListEl.innerHTML = '';
 
     if (activeView === "home") {
-        document.getElementById('feedEyebrow').textContent = "PINOY OPM & HIP-HOP";
-        document.getElementById('feedTitle').textContent = "Trending OPM & Rap";
+        document.getElementById('feedEyebrow').textContent = "WORLDWIDE TRENDING";
+        document.getElementById('feedTitle').textContent = "Global Top Charts";
 
-        playlist = [...defaultPlaylist];
-
-        playlist.forEach((song, idx) => {
-            const isCurrent = (playlist[currentIndex]?.id === song.id);
+        let htmlMarkup = `<h4 style="font-size: 14px; color: var(--apple-pink); margin-bottom: 8px; letter-spacing: 0.5px;">🌍 GLOBAL HITS</h4>`;
+        
+        globalCharts.forEach((song) => {
+            const realIdx = playlist.findIndex(s => s.id === song.id);
+            const isCurrent = (currentIndex === realIdx);
             const downloaded = isSongDownloaded(song.id);
 
-            const item = document.createElement('div');
-            item.className = `song-item ${isCurrent ? 'playing' : ''}`;
-            item.innerHTML = `
-                <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
-                <div class="song-info">
-                    <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
-                    <p>${song.artist} • ${song.mood || 'OPM'}</p>
+            htmlMarkup += `
+                <div class="song-item ${isCurrent ? 'playing' : ''}" data-index="${realIdx}">
+                    <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
+                    <div class="song-info">
+                        <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
+                        <p>${song.artist}</p>
+                    </div>
+                    <span class="song-duration-tag">${song.durationText}</span>
                 </div>
-                <span class="song-duration-tag">${song.durationText || '0:30'}</span>
             `;
-            
+        });
+
+        htmlMarkup += `<h4 style="font-size: 14px; color: #ff7eb3; margin: 20px 0 8px; letter-spacing: 0.5px;">🇵🇭 PINOY OPM & RAP CHARTS</h4>`;
+
+        opmCharts.forEach((song) => {
+            const realIdx = playlist.findIndex(s => s.id === song.id);
+            const isCurrent = (currentIndex === realIdx);
+            const downloaded = isSongDownloaded(song.id);
+
+            htmlMarkup += `
+                <div class="song-item ${isCurrent ? 'playing' : ''}" data-index="${realIdx}">
+                    <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
+                    <div class="song-info">
+                        <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
+                        <p>${song.artist}</p>
+                    </div>
+                    <span class="song-duration-tag">${song.durationText}</span>
+                </div>
+            `;
+        });
+
+        songListEl.innerHTML = htmlMarkup;
+        carouselListEl.innerHTML = '<p class="search-hint" style="text-align:left; font-size: 13px; color: rgba(255,255,255,0.4);">Gamitin ang search bar sa taas para sa iba pang kanta.</p>';
+
+        // Event listener para sa mga rendered song items
+        document.querySelectorAll('.song-item').forEach(item => {
             item.addEventListener('click', () => {
-                playlist = [...defaultPlaylist];
+                const idx = parseInt(item.dataset.index);
                 loadSong(idx);
                 playSong();
                 openSheet();
             });
-            songListEl.appendChild(item);
-        });
-
-        // Render Best Artists Section sa Heavy Rotation carousel
-        document.querySelector('.feed-section:nth-of-type(2) .eyebrow').textContent = "TOP CREATORS";
-        document.querySelector('.feed-section:nth-of-type(2) h3').textContent = "Best OPM Artists";
-
-        carouselListEl.innerHTML = '';
-        bestArtists.forEach((artist) => {
-            const card = document.createElement('div');
-            card.className = 'carousel-card';
-            card.innerHTML = `
-                <img src="${artist.img}" alt="${artist.name}" style="border-radius: 50%;" referrerpolicy="no-referrer" crossorigin="anonymous">
-                <h4 style="text-align: center;">${artist.name}</h4>
-                <p style="text-align: center; font-size: 11px;">${artist.genre}</p>
-            `;
-            card.addEventListener('click', async () => {
-                showToast(`Nagse-search ng kanta mula kay ${artist.name}...`);
-                try {
-                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.name)}&entity=song&limit=10`);
-                    const data = await res.json();
-                    if (data.results && data.results.length > 0) {
-                        playlist = data.results.map(item => ({
-                            id: String(item.trackId),
-                            title: item.trackName,
-                            artist: item.artistName,
-                            mood: item.primaryGenreName || 'OPM',
-                            durationText: '0:30',
-                            src: item.previewUrl,
-                            cover: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg') : artist.img
-                        }));
-                        loadSong(0);
-                        playSong();
-                        openSheet();
-                    } else {
-                        showToast(`Walang nakitang kanta para kay ${artist.name}`);
-                    }
-                } catch {
-                    showToast("Nagka-error sa pagkuha ng artist tracks.");
-                }
-            });
-            carouselListEl.appendChild(card);
         });
 
     } else {
@@ -397,7 +385,7 @@ function loadSong(index) {
     fullTitle.textContent = song.title;
     miniArtist.textContent = song.artist;
     fullArtist.textContent = song.artist;
-    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : (song.mood || 'OPM Stream');
+    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : (song.mood || 'Charts Stream');
 
     progressBar.value = 0;
     miniProgressFill.style.width = '0%';
@@ -450,7 +438,6 @@ miniPlayBtn.addEventListener('click', (e) => {
 playPauseBtn.addEventListener('click', togglePlayPause);
 
 document.getElementById('heroPlayBtn').addEventListener('click', () => {
-    playlist = [...defaultPlaylist];
     loadSong(0);
     playSong();
     openSheet();
@@ -610,7 +597,7 @@ closeSearchBtn.addEventListener('click', () => searchOverlay.classList.remove('a
 clearSearchBtn.addEventListener('click', () => {
     searchInput.value = '';
     clearSearchBtn.style.display = 'none';
-    searchResults.innerHTML = '<p class="search-hint">Mag-type ng OPM o kanta...</p>';
+    searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artist...</p>';
     searchInput.focus();
 });
 
@@ -621,7 +608,7 @@ searchInput.addEventListener('input', (e) => {
 
     clearTimeout(searchTimer);
     if (!query) {
-        searchResults.innerHTML = '<p class="search-hint">Mag-type ng OPM o kanta...</p>';
+        searchResults.innerHTML = '<p class="search-hint">Mag-type ng kanta o artist...</p>';
         return;
     }
 
@@ -645,7 +632,7 @@ searchInput.addEventListener('input', (e) => {
                     id: String(item.trackId),
                     title: item.trackName,
                     artist: item.artistName,
-                    mood: item.primaryGenreName || 'OPM',
+                    mood: item.primaryGenreName || 'Global Chart',
                     durationText: '0:30',
                     src: item.previewUrl,
                     cover: highResArtwork
@@ -657,12 +644,12 @@ searchInput.addEventListener('input', (e) => {
                     <img src="${songObj.cover}" alt="${songObj.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
                     <div class="song-info">
                         <h4>${songObj.title}</h4>
-                        <p>${songObj.artist} • ${songObj.mood}</p>
+                        <p>${songObj.artist}</p>
                     </div>
                 `;
 
                 row.addEventListener('click', () => {
-                    playlist = [songObj, ...defaultPlaylist];
+                    playlist = [songObj, ...playlist];
                     loadSong(0);
                     playSong();
                     searchOverlay.classList.remove('active');
@@ -697,6 +684,6 @@ document.querySelectorAll('.nav-item').forEach(btn => {
 document.getElementById('lyricsToggleBtn').addEventListener('click', () => showToast("Synced lyrics coming soon!"));
 
 // Init
-playlist = [...defaultPlaylist];
+playlist = [...globalCharts, ...opmCharts];
 loadSong(0);
 renderSongs();
