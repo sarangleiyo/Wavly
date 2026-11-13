@@ -1,67 +1,40 @@
 const STORAGE_KEY = 'wavly_playlists_v1';
 
-// Hiwalay na Global Hits at OPM/Rap Charts
-const globalCharts = [
+// Mga Curated Playlist Cards ala-Spotify na may sari-sariling mga kanta
+const curatedPlaylists = [
     {
-        id: "g1",
-        title: "Blinding Lights",
-        artist: "The Weeknd",
-        mood: "Global Chart",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/74/d3/18/74d318e8-d65e-2b1b-967b-1361c47144e5/19UMGIM05610.rgb.jpg/600x600bb.jpg"
+        id: 'playlist_chill_80s',
+        name: '80s/90s, Chill & OPM',
+        cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+        description: 'Relaxing classic vibes & OPM hits',
+        songs: [
+            { id: "c1", title: "Yellow", artist: "Coldplay", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/a4/6a/d0/a46ad07a-289b-8710-53e3-85f2658f8b8a/mza_15510619932174246995.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" },
+            { id: "c2", title: "Bawat Piyesa", artist: "Munimuni", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=80" }
+        ]
     },
     {
-        id: "g2",
-        title: "Levitating",
-        artist: "Dua Lipa",
-        mood: "Global Chart",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/55/e2/e8/55e2e8e6-1215-28b9-497b-3b60cd5e04b7/20UMGIM81561.rgb.jpg/600x600bb.jpg"
+        id: 'playlist_tagalog_rap',
+        name: 'New Tagalog Rap 2026',
+        cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+        description: 'Hev Abi, Flow G, Al James & more',
+        songs: [
+            { id: "r1", title: "Alam Mo Ba Girl", artist: "Hev Abi", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80" },
+            { id: "r2", title: "Gusto", artist: "Zack Tabudlo & Al James", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&auto=format&fit=crop&q=80" },
+            { id: "r3", title: "Ilang Taon Na Ba", artist: "Flow G", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80" }
+        ]
     },
     {
-        id: "g3",
-        title: "Stay",
-        artist: "The Kid LAROI & Justin Bieber",
-        mood: "Global Chart",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
-        cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/95/fb/6a/95fb6a6d-cb53-06a1-94ef-65d1b72e1268/21UMGIM56449.rgb.jpg/600x600bb.jpg"
+        id: 'playlist_global_hits',
+        name: 'Global Release Radar',
+        cover: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=600&auto=format&fit=crop&q=80',
+        description: 'The Weeknd, Dua Lipa, Justin Bieber',
+        songs: [
+            { id: "gh1", title: "Blinding Lights", artist: "The Weeknd", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=600&auto=format&fit=crop&q=80" },
+            { id: "gh2", title: "Levitating", artist: "Dua Lipa", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80" },
+            { id: "gh3", title: "Stay", artist: "The Kid LAROI & Justin Bieber", durationText: "0:30", src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a", cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80" }
+        ]
     }
 ];
-
-const opmCharts = [
-    {
-        id: "o1",
-        title: "Alam Mo Ba Girl",
-        artist: "Hev Abi",
-        mood: "OPM Chart",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/36/41/27/3641276a-360d-88b1-5992-05461c3905cf/mza_10842795642436814041.plus.aac.p.m4a",
-        cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80"
-    },
-    {
-        id: "o2",
-        title: "Gusto",
-        artist: "Zack Tabudlo & Al James",
-        mood: "OPM Chart",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/4a/12/57/4a12574e-0a56-89d0-1c09-2b047f3df617/mza_11674997092928929783.plus.aac.p.m4a",
-        cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&auto=format&fit=crop&q=80"
-    },
-    {
-        id: "o3",
-        title: "Dilaw",
-        artist: "Maki",
-        mood: "OPM Chart",
-        durationText: "0:30",
-        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/a4/6a/d0/a46ad07a-289b-8710-53e3-85f2658f8b8a/mza_15510619932174246995.plus.aac.p.m4a",
-        cover: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80"
-    }
-];
-
-let playlist = [...globalCharts, ...opmCharts];
 
 function getStoredPlaylists() {
     try {
@@ -83,8 +56,10 @@ function savePlaylists(lists) {
 }
 
 let playlists = getStoredPlaylists();
-let activeView = "home";
+let activeView = "home"; // 'home', 'curated_detail', o 'library'
+let currentActivePlaylist = null;
 
+let playlist = [...curatedPlaylists[0].songs];
 let currentIndex = 0;
 let isShuffle = false;
 let isRepeat = false;
@@ -93,7 +68,6 @@ const likedIds = new Set();
 
 const audioElement = document.getElementById('audioElement');
 
-// DOM Elements
 const songListEl = document.getElementById('songList');
 const carouselListEl = document.getElementById('carouselList');
 const miniImg = document.getElementById('miniImg');
@@ -162,7 +136,7 @@ async function updateMediaSession(song) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: song.title,
             artist: song.artist,
-            album: 'Wavly Charts',
+            album: 'Wavly Spotify Style',
             artwork: [
                 { src: song.cover, sizes: '512x512', type: 'image/jpeg' },
                 { src: song.cover, sizes: '256x256', type: 'image/jpeg' }
@@ -185,42 +159,80 @@ function updatePositionState() {
     }
 }
 
-// Render Home View (Global Charts & OPM Charts Separated)
+// Render Spotify-Style Home View (Grid/Cards sa taas)
 function renderSongs() {
     songListEl.innerHTML = '';
 
     if (activeView === "home") {
-        document.getElementById('feedEyebrow').textContent = "WORLDWIDE TRENDING";
-        document.getElementById('feedTitle').textContent = "Global Top Charts";
+        document.getElementById('feedEyebrow').textContent = "GOOD EVENING";
+        document.getElementById('feedTitle').textContent = "Featured Playlists";
 
-        let htmlMarkup = `<h4 style="font-size: 14px; color: var(--apple-pink); margin-bottom: 8px; letter-spacing: 0.5px;">🌍 GLOBAL HITS</h4>`;
-        
-        globalCharts.forEach((song) => {
-            const realIdx = playlist.findIndex(s => s.id === song.id);
-            const isCurrent = (currentIndex === realIdx);
-            const downloaded = isSongDownloaded(song.id);
-
-            htmlMarkup += `
-                <div class="song-item ${isCurrent ? 'playing' : ''}" data-index="${realIdx}">
-                    <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
-                    <div class="song-info">
-                        <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
-                        <p>${song.artist}</p>
-                    </div>
-                    <span class="song-duration-tag">${song.durationText}</span>
+        // Spotify-style 2-column grid cards para sa mga playlists
+        let gridHtml = `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">`;
+        curatedPlaylists.forEach(cp => {
+            gridHtml += `
+                <div class="spotify-card" data-id="${cp.id}" style="background: rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s;">
+                    <img src="${cp.cover}" alt="${cp.name}" style="width: 56px; height: 56px; object-fit: cover;" referrerpolicy="no-referrer" crossorigin="anonymous">
+                    <span style="font-size: 13px; font-weight: 700; color: #fff; padding-right: 8px; line-height: 1.2;">${cp.name}</span>
                 </div>
             `;
         });
+        gridHtml += `</div>`;
 
-        htmlMarkup += `<h4 style="font-size: 14px; color: #ff7eb3; margin: 20px 0 8px; letter-spacing: 0.5px;">🇵🇭 PINOY OPM & RAP CHARTS</h4>`;
+        // Section header para sa pinakabagong kanta
+        gridHtml += `<h3 style="font-size: 18px; font-weight: 800; margin-bottom: 12px;">It's New Music Friday!</h3>`;
 
-        opmCharts.forEach((song) => {
-            const realIdx = playlist.findIndex(s => s.id === song.id);
-            const isCurrent = (currentIndex === realIdx);
+        songListEl.innerHTML = gridHtml;
+
+        // Ipakita ang lahat ng default songs sa carousel / list
+        carouselListEl.innerHTML = '';
+        curatedPlaylists.forEach(cp => {
+            cp.songs.forEach((song, idx) => {
+                const card = document.createElement('div');
+                card.className = 'carousel-card';
+                card.innerHTML = `
+                    <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
+                    <h4>${song.title}</h4>
+                    <p>${song.artist}</p>
+                `;
+                card.addEventListener('click', () => {
+                    playlist = cp.songs;
+                    loadSong(idx);
+                    playSong();
+                    openSheet();
+                });
+                carouselListEl.appendChild(card);
+            });
+        });
+
+        // Pag pinindot ang Spotify card sa taas, bubukas ang playlist na yun
+        document.querySelectorAll('.spotify-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const cpId = card.dataset.id;
+                openCuratedPlaylistView(cpId);
+            });
+        });
+
+    } else if (activeView === "curated_detail") {
+        // Kapag pinasok ang loob ng isang curated playlist card (parang Spotify album view)
+        document.getElementById('feedEyebrow').textContent = currentActivePlaylist.description.toUpperCase();
+        document.getElementById('feedTitle').textContent = currentActivePlaylist.name;
+
+        let htmlMarkup = `
+            <button id="backHomeBtn" style="margin-bottom: 14px; padding: 6px 14px; border-radius: 8px; background: rgba(255,255,255,0.1); border: none; color: #fff; cursor: pointer; font-size: 12px; font-weight: 600;">← Back to Home</button>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="${currentActivePlaylist.cover}" alt="Cover" style="width: 140px; height: 140px; border-radius: 16px; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <h3 style="font-size: 20px; font-weight: 800; margin-top: 10px;">${currentActivePlaylist.name}</h3>
+                <p style="font-size: 13px; color: rgba(255,255,255,0.6);">${currentActivePlaylist.songs.length} songs available</p>
+            </div>
+        `;
+
+        currentActivePlaylist.songs.forEach((song, idx) => {
+            const isCurrent = (playlist[currentIndex]?.id === song.id);
             const downloaded = isSongDownloaded(song.id);
 
             htmlMarkup += `
-                <div class="song-item ${isCurrent ? 'playing' : ''}" data-index="${realIdx}">
+                <div class="song-item ${isCurrent ? 'playing' : ''}" data-index="${idx}">
                     <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
                     <div class="song-info">
                         <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
@@ -232,12 +244,17 @@ function renderSongs() {
         });
 
         songListEl.innerHTML = htmlMarkup;
-        carouselListEl.innerHTML = '<p class="search-hint" style="text-align:left; font-size: 13px; color: rgba(255,255,255,0.4);">Gamitin ang search bar sa taas para sa iba pang kanta.</p>';
+        carouselListEl.innerHTML = '';
 
-        // Event listener para sa mga rendered song items
+        document.getElementById('backHomeBtn').addEventListener('click', () => {
+            activeView = "home";
+            renderSongs();
+        });
+
         document.querySelectorAll('.song-item').forEach(item => {
             item.addEventListener('click', () => {
                 const idx = parseInt(item.dataset.index);
+                playlist = currentActivePlaylist.songs;
                 loadSong(idx);
                 playSong();
                 openSheet();
@@ -245,7 +262,8 @@ function renderSongs() {
         });
 
     } else {
-        document.getElementById('feedEyebrow').textContent = "MY LIBRARY & PLAYLISTS";
+        // Library / User Playlists View
+        document.getElementById('feedEyebrow').textContent = "MY LIBRARY";
         document.getElementById('feedTitle').textContent = "Your Playlists";
 
         let htmlContent = `
@@ -289,13 +307,21 @@ function renderSongs() {
         document.querySelectorAll('.playlist-folder-card').forEach(card => {
             card.addEventListener('click', () => {
                 const listId = card.dataset.id;
-                openPlaylistSongsModal(listId);
+                openUserPlaylistModal(listId);
             });
         });
     }
 }
 
-function openPlaylistSongsModal(listId) {
+function openCuratedPlaylistView(cpId) {
+    const found = curatedPlaylists.find(p => p.id === cpId);
+    if (!found) return;
+    currentActivePlaylist = found;
+    activeView = "curated_detail";
+    renderSongs();
+}
+
+function openUserPlaylistModal(listId) {
     const targetList = playlists.find(p => p.id === listId);
     if (!targetList) return;
 
@@ -345,7 +371,7 @@ function openPlaylistSongsModal(listId) {
             e.stopPropagation();
             targetList.songs = targetList.songs.filter(s => s.id !== song.id);
             savePlaylists(playlists);
-            openPlaylistSongsModal(listId);
+            openUserPlaylistModal(listId);
             showToast("Tinanggal ang kanta sa playlist.");
         });
         songListEl.appendChild(item);
@@ -385,7 +411,7 @@ function loadSong(index) {
     fullTitle.textContent = song.title;
     miniArtist.textContent = song.artist;
     fullArtist.textContent = song.artist;
-    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : (song.mood || 'Charts Stream');
+    playingMoodLabel.textContent = isSongDownloaded(song.id) ? 'Offline Ready' : 'Spotify Playlist Stream';
 
     progressBar.value = 0;
     miniProgressFill.style.width = '0%';
@@ -438,6 +464,7 @@ miniPlayBtn.addEventListener('click', (e) => {
 playPauseBtn.addEventListener('click', togglePlayPause);
 
 document.getElementById('heroPlayBtn').addEventListener('click', () => {
+    playlist = curatedPlaylists[0].songs;
     loadSong(0);
     playSong();
     openSheet();
@@ -632,7 +659,6 @@ searchInput.addEventListener('input', (e) => {
                     id: String(item.trackId),
                     title: item.trackName,
                     artist: item.artistName,
-                    mood: item.primaryGenreName || 'Global Chart',
                     durationText: '0:30',
                     src: item.previewUrl,
                     cover: highResArtwork
@@ -684,6 +710,6 @@ document.querySelectorAll('.nav-item').forEach(btn => {
 document.getElementById('lyricsToggleBtn').addEventListener('click', () => showToast("Synced lyrics coming soon!"));
 
 // Init
-playlist = [...globalCharts, ...opmCharts];
+playlist = [...curatedPlaylists[0].songs];
 loadSong(0);
 renderSongs();
