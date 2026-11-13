@@ -41,7 +41,6 @@ const defaultPlaylist = [
     }
 ];
 
-// Load saved offline songs from LocalStorage
 function getDownloadedSongs() {
     try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -54,7 +53,6 @@ function saveDownloadedSongs(list) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
-// Merge downloaded songs with default playlist (avoid duplicates)
 let downloadedSongs = getDownloadedSongs();
 let playlist = [...downloadedSongs];
 defaultPlaylist.forEach(def => {
@@ -134,27 +132,73 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Update Lockscreen & Background Notification Controls (Media Session API)
-function updateMediaSession(song) {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: song.title,
-            artist: song.artist,
-            album: 'Wavly Music',
-            artwork: [
-                { src: song.cover, sizes: '512x512', type: 'image/jpeg' }
-            ]
+// Helper: Convert Cover URL to DataURL (Base64) para siguradong lumabas sa Dynamic Island & Lockscreen
+async function getArtworkForSystemUI(imageUrl) {
+    try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = imageUrl;
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
         });
 
-        navigator.mediaSession.setActionHandler('play', playSong);
-        navigator.mediaSession.setActionHandler('pause', pauseSong);
-        navigator.mediaSession.setActionHandler('previoustrack', playPrev);
-        navigator.mediaSession.setActionHandler('nexttrack', playNext);
-        navigator.mediaSession.setActionHandler('seekto', (details) => {
-            if (details.seekTime && audioElement.duration) {
-                audioElement.currentTime = details.seekTime;
-            }
-        });
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 256, 256);
+        return canvas.toDataURL('image/png');
+    } catch {
+        // Fallback sa original URL kapag may CORS restriction sa image
+        return imageUrl;
+    }
+}
+
+// Update Dynamic Island, Lockscreen & Notification Controls (Media Session API)
+async function updateMediaSession(song) {
+    if (!('mediaSession' in navigator)) return;
+
+    const processedArt = await getArtworkForSystemUI(song.cover);
+    const smallCover = song.cover.replace('600x600bb.jpg', '100x100bb.jpg');
+    const medCover = song.cover.replace('600x600bb.jpg', '300x300bb.jpg');
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: song.title,
+        artist: song.artist,
+        album: 'Wavly',
+        artwork: [
+            { src: processedArt, sizes: '256x256', type: 'image/png' },
+            { src: smallCover, sizes: '96x96', type: 'image/jpeg' },
+            { src: medCover, sizes: '256x256', type: 'image/jpeg' },
+            { src: song.cover, sizes: '512x512', type: 'image/jpeg' }
+        ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', playSong);
+    navigator.mediaSession.setActionHandler('pause', pauseSong);
+    navigator.mediaSession.setActionHandler('previoustrack', playPrev);
+    navigator.mediaSession.setActionHandler('nexttrack', playNext);
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && audioElement.duration) {
+            audioElement.currentTime = details.seekTime;
+            updatePositionState();
+        }
+    });
+}
+
+// Sync timeline bar sa Dynamic Island / Lockscreen
+function updatePositionState() {
+    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+        if (audioElement.duration && !isNaN(audioElement.duration)) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: audioElement.duration,
+                    playbackRate: audioElement.playbackRate,
+                    position: audioElement.currentTime
+                });
+            } catch {}
+        }
     }
 }
 
@@ -274,6 +318,7 @@ async function playSong() {
         artworkContainer.classList.add('is-playing');
         if ('mediaSession' in navigator) {
             navigator.mediaSession.playbackState = 'playing';
+            updateMediaSession(playlist[currentIndex]);
         }
     } catch (err) {
         console.error("Playback error:", err);
@@ -397,7 +442,6 @@ sheetDownloadBtn.addEventListener('click', async () => {
 
     try {
         const cache = await caches.open(OFFLINE_CACHE);
-        // Fetch with no-cors fallback para siguradong ma-cache ang audio stream
         const audioRes = await fetch(song.src, { mode: 'no-cors' });
         await cache.put(song.src, audioRes);
 
@@ -431,6 +475,7 @@ progressBar.addEventListener('input', () => {
 progressBar.addEventListener('change', () => {
     if (audioElement.duration) {
         audioElement.currentTime = (progressBar.value / 100) * audioElement.duration;
+        updatePositionState();
     }
     isSeeking = false;
 });
@@ -442,6 +487,7 @@ audioElement.addEventListener('timeupdate', () => {
         miniProgressFill.style.width = `${pct}%`;
         currentTimeEl.textContent = formatTime(audioElement.currentTime);
         durationEl.textContent = formatTime(audioElement.duration);
+        updatePositionState();
     }
 });
 
@@ -457,7 +503,7 @@ function closeSheet() { nowPlayingSheet.classList.remove('active'); }
 openPlayerBtn.addEventListener('click', openSheet);
 closePlayerBtn.addEventListener('click', closeSheet);
 
-// Mood Chips Filter (Kasama na ang "Downloaded" chip)
+// Mood Chips Filter
 document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
