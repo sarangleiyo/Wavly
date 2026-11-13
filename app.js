@@ -130,7 +130,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// I-fetch ang image bilang blob para basahin ng Android System / Notification nang walang CORS block
 async function getLocalBlobUrl(url) {
     try {
         const response = await fetch(url);
@@ -143,7 +142,6 @@ async function getLocalBlobUrl(url) {
 
 async function updateMediaSession(song) {
     if (!('mediaSession' in navigator)) return;
-
     try {
         const blobUrl = await getLocalBlobUrl(song.cover);
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -156,7 +154,7 @@ async function updateMediaSession(song) {
             ]
         });
     } catch (e) {
-        console.error("MediaSession error:", e);
+        console.error(e);
     }
 }
 
@@ -174,14 +172,15 @@ function updatePositionState() {
     }
 }
 
+// Render Song List na may fixed ID matching para hindi magloko ang tap
 function renderSongs() {
-    let filtered = playlist;
+    let sourceList = playlist;
     if (activeMood === "Offline") {
-        filtered = downloadedSongs;
+        sourceList = downloadedSongs;
         document.getElementById('feedEyebrow').textContent = "SAVED ON DEVICE";
         document.getElementById('feedTitle').textContent = `Downloaded (${downloadedSongs.length})`;
     } else if (activeMood !== "All") {
-        filtered = playlist.filter(s => s.mood === activeMood);
+        sourceList = playlist.filter(s => s.mood === activeMood);
         document.getElementById('feedEyebrow').textContent = "MOOD MIX";
         document.getElementById('feedTitle').textContent = activeMood;
     } else {
@@ -191,10 +190,10 @@ function renderSongs() {
 
     songListEl.innerHTML = '';
 
-    if (filtered.length === 0) {
+    if (sourceList.length === 0) {
         songListEl.innerHTML = `<p class="search-hint" style="margin: 20px 0;">Wala pang naka-download na kanta.</p>`;
     } else {
-        filtered.forEach((song) => {
+        sourceList.forEach((song) => {
             const realIndex = playlist.findIndex(item => item.id === song.id);
             const isCurrent = realIndex === currentIndex;
             const downloaded = isSongDownloaded(song.id);
@@ -202,7 +201,7 @@ function renderSongs() {
             const item = document.createElement('div');
             item.className = `song-item ${isCurrent ? 'playing' : ''}`;
             item.innerHTML = `
-                <img src="${song.cover}" alt="${song.title}" crossorigin="anonymous">
+                <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
                 <div class="song-info">
                     <h4>${song.title} ${downloaded ? '✓' : ''}</h4>
                     <p>${song.artist} • ${downloaded ? 'Offline Ready' : (song.mood || 'Stream')}</p>
@@ -223,7 +222,7 @@ function renderSongs() {
         const card = document.createElement('div');
         card.className = 'carousel-card';
         card.innerHTML = `
-            <img src="${song.cover}" alt="${song.title}" crossorigin="anonymous">
+            <img src="${song.cover}" alt="${song.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
             <h4>${song.title}</h4>
             <p>${song.artist}</p>
         `;
@@ -292,7 +291,7 @@ async function playSong() {
             updateMediaSession(playlist[currentIndex]);
         }
     } catch (err) {
-        console.error("Playback error:", err);
+        console.error(err);
         showToast("Pindutin ulit ang Play");
     }
 }
@@ -527,7 +526,7 @@ searchInput.addEventListener('input', (e) => {
                 const row = document.createElement('div');
                 row.className = 'song-item';
                 row.innerHTML = `
-                    <img src="${songObj.cover}" alt="${songObj.title}" crossorigin="anonymous">
+                    <img src="${songObj.cover}" alt="${songObj.title}" referrerpolicy="no-referrer" crossorigin="anonymous">
                     <div class="song-info">
                         <h4>${songObj.title}</h4>
                         <p>${songObj.artist} • ${songObj.mood}</p>
