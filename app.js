@@ -26,7 +26,7 @@ const defaultPlaylist = [
         artist: "The Kid LAROI & Justin Bieber",
         mood: "Energy",
         durationText: "0:30",
-        src: "https://audio-ssl.itunes.assets.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
+        src: "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/3b/bc/7b/3bbc7be7-b35e-c15c-37e1-80a56b40283e/mza_11438960132219717140.plus.aac.p.m4a",
         cover: "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/95/fb/6a/95fb6a6d-cb53-06a1-94ef-65d1b72e1268/21UMGIM56449.rgb.jpg/600x600bb.jpg"
     },
     {
@@ -40,7 +40,6 @@ const defaultPlaylist = [
     }
 ];
 
-// Load Playlists from LocalStorage o gawa ng default "Offline Downloads" playlist
 function getStoredPlaylists() {
     try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -61,8 +60,7 @@ function savePlaylists(lists) {
 }
 
 let playlists = getStoredPlaylists();
-let currentPlaylistId = "offline-downloads";
-let activeView = "home"; // 'home' or 'library'
+let activeView = "home";
 
 let playlist = [...defaultPlaylist];
 let currentIndex = 0;
@@ -121,7 +119,6 @@ function showToast(msg) {
     toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
 }
 
-// Check kung ang kanta ay nasa Offline Playlist na
 function isSongDownloaded(songId) {
     const offlineList = playlists.find(p => p.id === "offline-downloads");
     return offlineList ? offlineList.songs.some(s => s.id === songId) : false;
@@ -177,7 +174,7 @@ function renderSongs() {
         playlist = [...defaultPlaylist];
 
         playlist.forEach((song, idx) => {
-            const isCurrent = (playlist[currentIndex]?.id === song.id);
+            const isCurrent = (currentIndex === idx);
             const downloaded = isSongDownloaded(song.id);
 
             const item = document.createElement('div');
@@ -210,16 +207,15 @@ function renderSongs() {
             card.addEventListener('click', () => {
                 loadSong(idx);
                 playSong();
+                openSheet();
             });
             carouselListEl.appendChild(card);
         });
 
     } else {
-        // Library / Playlists View
         document.getElementById('feedEyebrow').textContent = "MY LIBRARY & PLAYLISTS";
         document.getElementById('feedTitle').textContent = "Your Playlists";
 
-        // Render create playlist button + list of playlists
         let htmlContent = `
             <div style="margin-bottom: 16px;">
                 <button id="createPlaylistBtn" style="width: 100%; padding: 12px; border-radius: 14px; background: rgba(250,45,72,0.15); border: 1px solid rgba(250,45,72,0.4); color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -267,7 +263,6 @@ function renderSongs() {
     }
 }
 
-// Modal para tignan ang mga kanta sa loob ng isang partikular na Playlist
 function openPlaylistSongsModal(listId) {
     const targetList = playlists.find(p => p.id === listId);
     if (!targetList) return;
@@ -283,12 +278,18 @@ function openPlaylistSongsModal(listId) {
             <p class="search-hint" style="margin: 20px 0;">Wala pang kanta dito. Mag-search at i-save ang kanta papunta sa playlist na ito!</p>
             <button id="backToLibBtn" style="padding: 8px 16px; border-radius: 10px; background: rgba(255,255,255,0.1); border: none; color: #fff; cursor: pointer;">← Bumalik sa Library</button>
         `;
-        document.getElementById('backToLibBtn').addEventListener('click', renderSongs);
+        document.getElementById('backToLibBtn').addEventListener('click', () => {
+            activeView = "library";
+            renderSongs();
+        });
         return;
     }
 
     songListEl.innerHTML = `<button id="backToLibBtn" style="margin-bottom: 12px; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.08); border: none; color: #fff; cursor: pointer; font-size: 12px;">← Balik sa Playlists</button>`;
-    document.getElementById('backToLibBtn').addEventListener('click', renderSongs);
+    document.getElementById('backToLibBtn').addEventListener('click', () => {
+        activeView = "library";
+        renderSongs();
+    });
 
     playlist.forEach((song, idx) => {
         const item = document.createElement('div');
@@ -303,12 +304,7 @@ function openPlaylistSongsModal(listId) {
                 <span class="material-icons-round">delete</span>
             </button>
         `;
-        item.querySelector('.song-info').addEventListener('click', () => {
-            loadSong(idx);
-            playSong();
-            openSheet();
-        });
-        item.querySelector('.img')?.addEventListener('click', () => {
+        item.addEventListener('click', () => {
             loadSong(idx);
             playSong();
             openSheet();
@@ -367,6 +363,7 @@ function loadSong(index) {
     updateLikeUI();
     updateDownloadButtonUI(song);
     updateMediaSession(song);
+    renderSongs();
 }
 
 async function playSong() {
@@ -487,14 +484,12 @@ favBtn.addEventListener('click', () => {
     updateLikeUI();
 });
 
-// Save to Playlist / Offline Download Button Handler
 sheetDownloadBtn.addEventListener('click', () => {
     const song = playlist[currentIndex];
     if (!song) return;
 
-    // Magpakita ng selection kung saang playlist ise-save (Spotify style)
     let playlistNames = playlists.map((p, idx) => `${idx + 1}. ${p.name}`).join('\n');
-    let choice = prompt(`Piliin ang playlist kung saan mo gustong i-save:\n\n${playlistNames}\n\n(Mag-type ng numero o mag-type ng bagong pangalan ng playlist)`);
+    let choice = prompt(`Piliin ang playlist kung saan mo gustong i-save:\n\n${playlistNames}\n\n(Mag-type ng numero o pangalan ng bagong playlist)`);
 
     if (!choice) return;
 
@@ -503,7 +498,6 @@ sheetDownloadBtn.addEventListener('click', () => {
     if (!isNaN(choiceNum) && choiceNum > 0 && choiceNum <= playlists.length) {
         targetList = playlists[choiceNum - 1];
     } else {
-        // Gawa ng bagong playlist kung nag-type ng pangalan
         targetList = {
             id: 'playlist_' + Date.now(),
             name: choice.trim(),
@@ -639,7 +633,6 @@ searchInput.addEventListener('input', (e) => {
     }, 400);
 });
 
-// Bottom Navigation Tabs (Home vs Library/Playlists)
 document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
